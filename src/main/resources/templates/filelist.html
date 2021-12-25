@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>FileManager</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+          integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" rel="stylesheet">
+
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
+          integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script crossorigin="anonymous"
+            integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+            src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+            color: dodgerblue;
+        }
+        #menu{
+            width: 40%;
+
+        }
+
+        .circle {
+            width: 60px;
+            height: 60px;
+
+            background: dodgerblue;
+            -moz-border-radius: 50px;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            z-index: 10;
+            position: fixed;
+            right: 10%;
+            bottom: 5%;
+            box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
+
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="app">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-md-push-2 col-xs-12">
+                <table class="table table-hover" id="table">
+                    <tr>
+                        <th>Name</th>
+                        <th>Size</th>
+                        <th style="text-align: right">Time</th>
+                    </tr>
+                    <tr v-for="(item,index) in directories">
+                        <td><a :href="item.path">{{item.name}}</a></td>
+                        <td>{{item.size}}</td>
+                        <td style="text-align: right">{{item.date}}</td>
+                    </tr>
+                    <tr v-for="(item,index) in files">
+                        <td><a :download="item.name" :href="'/api/download'+item.path">{{item.name}}</a></td>
+                        <td>{{item.size}}</td>
+                        <td style="text-align: right">{{item.date}}</td>
+                    </tr>
+
+                </table>
+            </div>
+
+
+    </div>
+    </div>
+    <a href="/panel">
+        <div class="circle">
+            <img src="/img/panel.png" width="35px" height="25px" alt="" id="menu">
+        </div>
+    </a>
+</div>
+
+
+</div>
+
+</body>
+<script src="/js/userUtil.js"></script>
+<script>
+
+    var app = new Vue({
+        el: ".app",
+        data: {
+            directories: [],
+            files: [],
+        },
+        methods: {
+            addData(name, size, date, path, type) {
+
+                let file = {name: name, size: size, date: date, path: path, type: type}
+                if (type === "directory")
+                    this.directories.push(file)
+                else
+                    this.files.push(file)
+            },
+            cleanData(){
+                this.directories =[]
+                this.files= []
+            }
+        },
+        mounted() {
+            window.addDate = this.addData
+            window.cleanData = this.cleanData
+        }
+    })
+</script>
+<script>
+
+    $(function () {
+
+        $(".progress").hide();
+
+
+        let username = $.cookie("username");
+        let token = $.cookie("token");
+        if (username === "null" || token === "null") {
+            alert("请允许写入或读取cookie")
+            window.location.href = "/"
+        }
+
+        let code = verify();
+        if (code!==201){
+            $(".circle").hide()
+        }
+            if (code===200&&code===201){
+
+                window.location.href = "/"
+            }
+
+        const path = window.location.pathname;
+        console.log(path)
+        load(path);
+
+    })
+
+
+
+
+    /**
+     * 加载列表
+     * @param path 请求地址
+     */
+    function load(path) {
+
+        cleanData();
+        $.ajax({
+            url: "/api" + path,
+            success: function (res) {
+
+                $.each(res, function (index, object) {
+
+                    if (object.type === "directory") {
+                        window.addDate(object.name, "-", object.date, path + "/" + object.name, "directory")
+
+                    } else {
+                        window.addDate(object.name, object.size, object.date, path + "/" + object.name, "file")
+                    }
+
+                })
+
+            }
+
+        })
+    }
+
+</script>
+</html>

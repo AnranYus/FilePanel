@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html{
+            height: 100%;
+            width: 100%;
+        }
+        body{
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-image: url("/img/back.jpg");
+            background-repeat:no-repeat;
+            background-size: 100%;
+        }
+    </style>
+
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <h1 class="col-xs-4 col-xs-push-4 col-md-2 col-md-push-5" style="text-align: center">Panel</h1>
+    </div>
+    <div class="row" >
+        <form action="" class="col-md-4 col-md-push-4 col-xs-10 col-xs-push-1" >
+            <div class="form-group">
+                <label for="username">
+                    Username
+                </label>
+                <input type="text" name="" id="username" class="form-control">
+
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    Password
+                </label>
+                <input type="password" name="" id="password" class="form-control">
+            </div>
+        </form>
+    </div>
+    <div id="login" class="btn btn-primary col-md-2 col-md-push-5 col-xs-5 col-xs-push-3" style="margin-top: 20px" >登录</div>
+
+</div>
+
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+
+<script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script>
+    $(function () {
+
+        let username = $.cookie("username");
+        let token = $.cookie("token");
+        if (username!=="null"&&token!=="null")
+            verifyInit(username,token);
+    })
+
+    function verifyInit(username,token) {
+
+        console.log(username+token)
+
+        //判断是否有信息
+        if (token !== "null" && username !== "null") {
+            $.ajax({
+                url: "/api/verify",
+                method: "post",
+                data: {"username": username, "token": token},
+                success: function (res) {
+                    if (res.code === 200) {
+                        window.location.href = "/files"
+                    } else {
+                        console.log(res)
+                        $.cookie("username",null);
+                        $.cookie("token",null);
+                    }
+
+                }
+
+            })
+        }
+
+    }
+
+    $("#login").click(function () {
+        if ($("#username").val() !== "" && $("#password").val() !== "") {
+            $.ajax({
+                url: "/api/login",
+                method: "POST",
+                data: {'username': $("#username").val(), "password": $("#password").val()},
+                success: function (res) {
+                    if (res != null) {
+                        if (res.token != null) {
+
+                            $.cookie("token",res.token,{
+                                expires:1
+                            });
+                            $.cookie("username",res.username,{
+                                expires:1
+                            });
+
+                            verifyInit(res.username,res.token)
+                        } else {
+                            alert("帐号或密码错误")
+                        }
+                    }
+                }
+
+            })
+        }
+    })
+</script>
+
+</html>

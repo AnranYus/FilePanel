@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+</head>
+<style>
+
+</style>
+<body>
+<div class="up">
+  <form enctype='multipart/form-data' id="upLoad" method="POST">
+    <input id="file" type="file">
+  </form>
+  <button id="submit" onclick="up()">上传</button>
+
+</div>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+<script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="/js/userUtil.js"></script>
+<script >
+  const defer = $.Deferred();
+
+  function up() {
+    let formData = new FormData($("#upLoad")[0]);
+    formData.append("file", $("#file")[0].files[0])
+    if (formData.values().next().value==="undefined") {
+      console.log(undefined)
+      return;
+    }
+
+    $.when(upload(defer,formData)).done(function (res) {
+      console.log(res)
+      if (res===undefined){
+        return;
+      }
+      if (res.code === 200) {
+          alert("完成")
+      } else if (res.code === 501) {
+        alert("存在相同文件")
+      }else if(res.code===601){
+        alert("您无权上传")
+      }else if(res.code===402){
+        window.location.href="/"
+      }else{
+        console.log(res)
+        alert("上传失败，请查看控制台")
+      }
+    })
+  }
+
+  let upload = function (defer,formData) {
+
+    let code = verify();
+    if (code === 201) {
+      $(".progress").toggle();
+      $.ajax({
+        url: "/api/upload",
+        method: "post",
+        data: formData,
+        processData: false,
+        async: false,
+        contentType: false,
+        cache: false,
+        success: function (res) {
+
+          defer.resolve(res);
+        }
+
+      })
+    }
+
+    return defer;
+
+
+  }
+</script>
+</html>
