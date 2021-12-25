@@ -96,7 +96,7 @@ public class FileServiceImpl implements FIleService {
     @Override
     public FeedBack download(String coderStr, HttpServletResponse response) {
         java.io.File file = new java.io.File(ROOTPATH+coderStr);
-
+        response.setHeader("content-length", String.valueOf(file.length()));
         try {
             FileInputStream fis = new FileInputStream(file);
             OutputStream os = response.getOutputStream();
